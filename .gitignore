@@ -19,3 +19,6 @@ fastlane/screenshots/**/*.png
 
 # Local installer artifacts
 build-local/
+
+# CI local build output
+build-ci/

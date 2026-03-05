@@ -85,6 +85,25 @@ open /Applications/"Menu bar Companion app.app"
 
 If macOS blocks first launch: right-click app in `/Applications` -> **Open**.
 
+## Download (DMG)
+
+For end users, use the DMG from GitHub Releases:
+
+- Open the repo's **Releases** page
+- Download `LizardCompanion-macOS.dmg`
+- Drag the app into `/Applications`
+
+Maintainers can produce a DMG locally with:
+
+```bash
+./scripts/make-dmg.sh
+```
+
+This creates:
+
+- `dist/LizardCompanion-macOS.dmg`
+- `dist/LizardCompanion-macOS.dmg.sha256`
+
 ## Permissions
 
 The app requests permissions only when related features are enabled:
