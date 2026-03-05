@@ -89,6 +89,8 @@ If macOS blocks first launch: right-click app in `/Applications` -> **Open**.
 
 For end users, use the DMG from GitHub Releases:
 
+- Recommended download: [LizardCompanion-macOS.zip](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.zip)
+- ZIP checksum: [LizardCompanion-macOS.zip.sha256](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.zip.sha256)
 - Direct download (latest): [LizardCompanion-macOS.dmg](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.dmg)
 - SHA256 checksum: [LizardCompanion-macOS.dmg.sha256](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.dmg.sha256)
 - Releases page: [github.com/zabrodsk/lizard-companion-macos/releases](https://github.com/zabrodsk/lizard-companion-macos/releases)
