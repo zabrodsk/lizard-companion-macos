@@ -250,7 +250,7 @@ final class CompanionEngine: ObservableObject {
         let mood = Self.mapMood(trigger)
         let clipID = clipID(for: trigger)
         if let clip = clips[clipID] {
-            animator.setClip(clip, debounce: uiState.toggles.subtleMode ? 0.35 : 0.15)
+            animator.setClip(clip, debounce: uiState.toggles.subtleMode ? 0.8 : 0.35)
             uiState.activeClipID = clip.id
         }
 
@@ -262,19 +262,19 @@ final class CompanionEngine: ObservableObject {
         let multiplier: Double
         if uiState.toggles.subtleMode {
             if lastBatteryState.isLowBattery {
-                multiplier = 0.45
+                multiplier = 0.25
             } else if !lastBatteryState.isCharging {
-                multiplier = 0.65
+                multiplier = 0.45
             } else {
-                multiplier = 0.85
+                multiplier = 0.60
             }
         } else {
             if lastBatteryState.isLowBattery {
-                multiplier = 0.6
+                multiplier = 0.45
             } else if !lastBatteryState.isCharging {
-                multiplier = 0.85
+                multiplier = 0.70
             } else {
-                multiplier = 1.0
+                multiplier = 0.85
             }
         }
         animator.setSpeedMultiplier(multiplier)

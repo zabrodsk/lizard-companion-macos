@@ -7,6 +7,7 @@ STAGING_DIR="$DIST_DIR/dmg-staging"
 VOL_NAME="Lizard Companion"
 DMG_NAME="LizardCompanion-macOS.dmg"
 DMG_PATH="$DIST_DIR/$DMG_NAME"
+SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 
 mkdir -p "$DIST_DIR"
 rm -rf "$STAGING_DIR"
@@ -28,6 +29,16 @@ hdiutil create \
   -ov \
   -format UDZO \
   "$DMG_PATH"
+
+if [[ -n "$SIGN_IDENTITY" ]]; then
+  echo "Signing DMG with identity: $SIGN_IDENTITY"
+  codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG_PATH"
+  codesign --verify --verbose=2 "$DMG_PATH"
+fi
+
+if [[ -n "${NOTARYTOOL_PROFILE:-}" || (-n "${APPLE_ID:-}" && -n "${APPLE_APP_SPECIFIC_PASSWORD:-}" && -n "${APPLE_TEAM_ID:-}") ]]; then
+  "$ROOT_DIR/scripts/notarize-dmg.sh" "$DMG_PATH"
+fi
 
 # Optional checksum output
 shasum -a 256 "$DMG_PATH" > "$DMG_PATH.sha256"

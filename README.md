@@ -104,6 +104,24 @@ open ~/Downloads/LizardCompanion-macOS.dmg
 xattr -dr com.apple.quarantine /Applications/"Menu bar Companion app.app"
 ```
 
+### Notarized Releases (Recommended)
+
+The repo includes a notarized release workflow at:
+
+- `.github/workflows/release-dmg.yml`
+
+Add these GitHub repository secrets to produce trusted, notarized DMG builds:
+
+- `APPLE_DEVELOPER_ID_APPLICATION` (example: `Developer ID Application: Your Name (TEAMID)`)
+- `APPLE_DEVELOPER_ID_APP_CERT_BASE64` (base64-encoded `.p12`)
+- `APPLE_DEVELOPER_ID_APP_CERT_PASSWORD`
+- `SIGNING_KEYCHAIN_PASSWORD` (optional, generated if missing)
+- `NOTARYTOOL_PROFILE` (preferred)  
+  or
+- `APPLE_ID`
+- `APPLE_APP_SPECIFIC_PASSWORD`
+- `APPLE_TEAM_ID`
+
 Maintainers can produce a DMG locally with:
 
 ```bash
@@ -128,7 +146,7 @@ Animation is lightweight (tiny pixel frames), and the app includes power-aware t
 
 - Slower animation when unplugged
 - Stronger slowdown on low battery
-- Subtle mode further reduces animation intensity
+- Subtle mode now uses calmer defaults to reduce constant movement
 
 ## Project Structure
 

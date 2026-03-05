@@ -9,6 +9,7 @@ CONFIGURATION="Release"
 APP_NAME="Menu bar Companion app.app"
 APP_OUTPUT_PATH="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/$APP_NAME"
 LOG_PATH="$DERIVED_DATA_PATH/xcodebuild.log"
+SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 
 mkdir -p "$DERIVED_DATA_PATH"
 
@@ -30,6 +31,12 @@ fi
 if [[ ! -d "$APP_OUTPUT_PATH" ]]; then
   echo "App bundle not found at: $APP_OUTPUT_PATH" >&2
   exit 1
+fi
+
+if [[ -n "$SIGN_IDENTITY" ]]; then
+  echo "Signing app bundle with identity: $SIGN_IDENTITY" >&2
+  codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP_OUTPUT_PATH"
+  codesign --verify --deep --strict --verbose=2 "$APP_OUTPUT_PATH"
 fi
 
 # stdout is used by other scripts/workflows.
