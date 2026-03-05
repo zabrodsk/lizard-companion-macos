@@ -336,6 +336,9 @@ final class CompanionEngine: ObservableObject {
                 if isGitHubDesktop(lastAppContext.bundleIdentifier) {
                     return "github_sync"
                 }
+                if lastActivityState.intensity < 0.72 {
+                    return "focus_deep"
+                }
                 if isCursorApp(lastAppContext.bundleIdentifier) {
                     return "code_cursor"
                 }
@@ -349,6 +352,9 @@ final class CompanionEngine: ObservableObject {
             case .browser:
                 return "browse_think"
             case .chat:
+                if lastActivityState.intensity < 0.65 {
+                    return "focus_deep"
+                }
                 return "chat_talk"
             case .music:
                 return "music_headphones"

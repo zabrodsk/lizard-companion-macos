@@ -10,14 +10,14 @@ enum CompanionSpriteCatalog {
         return [
             "idle_blink": AnimationClip(id: "idle_blink", frames: [atlas[0], atlas[1]], fps: 3),
             "sleep": AnimationClip(id: "sleep", frames: [atlas[2], atlas[3]], fps: 2),
-            "code_mac": AnimationClip(id: "code_mac", frames: [atlas[4], atlas[5]], fps: 6),
-            "code_terminal": AnimationClip(id: "code_terminal", frames: [atlas[6], atlas[7]], fps: 6),
-            "code_cursor": AnimationClip(id: "code_cursor", frames: [atlas[8], atlas[9]], fps: 6),
-            "music_headphones": AnimationClip(id: "music_headphones", frames: [atlas[10], atlas[11], atlas[12]], fps: 7),
+            "code_mac": AnimationClip(id: "code_mac", frames: [atlas[4], atlas[5]], fps: 3),
+            "code_terminal": AnimationClip(id: "code_terminal", frames: [atlas[6], atlas[7]], fps: 3),
+            "code_cursor": AnimationClip(id: "code_cursor", frames: [atlas[8], atlas[9]], fps: 3),
+            "music_headphones": AnimationClip(id: "music_headphones", frames: [atlas[10], atlas[11], atlas[12]], fps: 5),
             "battery_worry": AnimationClip(id: "battery_worry", frames: [atlas[13], atlas[14]], fps: 4),
-            "meeting_wave": AnimationClip(id: "meeting_wave", frames: [atlas[15], atlas[16]], fps: 5),
+            "meeting_wave": AnimationClip(id: "meeting_wave", frames: [atlas[15], atlas[16]], fps: 3),
             "browse_think": AnimationClip(id: "browse_think", frames: [atlas[17], atlas[18]], fps: 4),
-            "chat_talk": AnimationClip(id: "chat_talk", frames: [atlas[19], atlas[20]], fps: 5),
+            "chat_talk": AnimationClip(id: "chat_talk", frames: [atlas[19], atlas[20]], fps: 3),
 
             // Expanded professional clip catalog for richer contextual reactions.
             "celebrate_fireworks": AnimationClip(id: "celebrate_fireworks", frames: [atlas[21], atlas[22], atlas[23]], fps: 7),
