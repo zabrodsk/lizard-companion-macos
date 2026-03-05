@@ -36,7 +36,7 @@ export SIGN_IDENTITY
 export NOTARYTOOL_PROFILE
 
 echo "==> Building + signing + notarizing DMG..."
-DMG_PATH="$($ROOT_DIR/scripts/make-dmg.sh | tail -n 1)"
+DMG_PATH="$("$ROOT_DIR/scripts/make-dmg.sh" | tail -n 1)"
 
 if [[ ! -f "$DMG_PATH" ]]; then
   echo "DMG not found at: $DMG_PATH" >&2
@@ -44,7 +44,7 @@ if [[ ! -f "$DMG_PATH" ]]; then
 fi
 
 echo "==> Creating ZIP artifact..."
-APP_PATH="$($ROOT_DIR/scripts/build-release-app.sh | tail -n 1)"
+APP_PATH="$("$ROOT_DIR/scripts/build-release-app.sh" | tail -n 1)"
 mkdir -p "$DIST_DIR/zip-staging"
 cp -R "$APP_PATH" "$DIST_DIR/zip-staging/"
 ZIP_PATH="$DIST_DIR/LizardCompanion-macOS.zip"
