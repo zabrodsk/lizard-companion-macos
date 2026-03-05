@@ -94,6 +94,14 @@ For end users, use the DMG from GitHub Releases:
 - Releases page: [github.com/zabrodsk/lizard-companion-macos/releases](https://github.com/zabrodsk/lizard-companion-macos/releases)
 - Drag the app into `/Applications`
 
+If macOS says the DMG or app is “damaged”, run:
+
+```bash
+xattr -dr com.apple.quarantine ~/Downloads/LizardCompanion-macOS.dmg
+open ~/Downloads/LizardCompanion-macOS.dmg
+xattr -dr com.apple.quarantine /Applications/"Menu bar Companion app.app"
+```
+
 Maintainers can produce a DMG locally with:
 
 ```bash
