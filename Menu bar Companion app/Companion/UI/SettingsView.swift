@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var engine: CompanionEngine
+    @Environment(\.openWindow) private var openWindow
     @AppStorage(CompanionDefaults.batteryThresholdKey) private var batteryThreshold = CompanionDefaults.batteryThresholdDefault
     @AppStorage(CompanionDefaults.meetingLeadMinutesKey) private var meetingLeadMinutes = CompanionDefaults.meetingLeadMinutesDefault
 
@@ -33,10 +34,19 @@ struct SettingsView: View {
                     Button("Enable") { engine.requestCalendarPermission() }
                 }
             }
+
+            Section("Dashboard") {
+                Button("Open Dashboard") {
+                    engine.openDashboard()
+                }
+            }
         }
         .padding()
         .frame(width: 420, height: 220)
         .onAppear {
+            engine.setDashboardOpener {
+                openWindow(id: "dashboard")
+            }
             engine.setBatteryThreshold(batteryThreshold)
             engine.setMeetingLeadMinutes(meetingLeadMinutes)
         }

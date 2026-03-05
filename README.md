@@ -28,10 +28,19 @@ An expressive menu bar pet that reacts to what you're doing on your Mac.
 
 - Animated companion in your menu bar (not a static icon)
 - Context-aware states for real workflows
+- Dashboard window with app/category time tracking (today and last 7 days)
 - Spotify reaction mode with just-in-time permission request
 - Calendar reminder reactions
 - Battery-aware animation throttling for better efficiency
 - Rich clip catalog with app-specific expressions
+
+## Branding
+
+- New app icon: Tom-inspired portrait with open protruding eyes for strong small-size readability.
+
+<p align="center">
+  <img src="docs/images/app-icon-tom.png" alt="Tom app icon preview" width="220" />
+</p>
 
 ## App-Aware States
 
@@ -103,7 +112,7 @@ open /Applications/"Menu bar Companion app.app"
 
 ### Maintainer Release Flow
 
-To build and upload the current unsigned ZIP release locally:
+To build and upload the current ZIP release locally:
 
 ```bash
 ./scripts/release-local.sh v0.1.2
@@ -112,10 +121,23 @@ To build and upload the current unsigned ZIP release locally:
 This flow:
 
 - Builds Release app
+- Notarizes + staples app when credentials are configured
 - Creates ZIP + SHA256 files
 - Uploads both assets to the provided GitHub release tag
 
 If you omit the tag, it just writes artifacts locally into `dist/`.
+
+To produce a notarized ZIP, set:
+
+```bash
+export SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)"
+# Option A (recommended): keychain profile
+export NOTARYTOOL_PROFILE="your-notary-profile"
+# Option B: Apple ID credentials
+# export APPLE_ID="you@example.com"
+# export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+# export APPLE_TEAM_ID="TEAMID"
+```
 
 If you only want local artifacts and no upload:
 
@@ -142,6 +164,7 @@ Animation is lightweight (tiny pixel frames), and the app includes power-aware t
 - Slower animation when unplugged
 - Stronger slowdown on low battery
 - Subtle mode now uses calmer defaults to reduce constant movement
+- Usage tracking runs on a lightweight 1-second frontmost-app sampler
 
 ## Project Structure
 
@@ -164,7 +187,7 @@ Menu bar Companion app/
 - Notch/desktop cameo mode (optional)
 - More character packs and themes
 - Additional integrations (tasks, git, notifications)
-- DMG packaging + notarized release builds
+- DMG polish and release UX improvements
 
 ## License
 

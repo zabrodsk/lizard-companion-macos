@@ -6,12 +6,14 @@ import Foundation
 final class CompanionEngine: ObservableObject {
     @Published private(set) var uiState: CompanionUIState
     @Published private(set) var menuBarImage: NSImage
+    @Published private(set) var dashboardState: UsageDashboardState
 
     private let activityService: ActivityMonitorService
     private let appService: ActiveAppService
     private let batteryService: BatteryService
     private let spotifyService: SpotifyService
     private let calendarService: CalendarService
+    private let usageTracker: UsageTrackerService
     private let animator: SpriteAnimator
 
     private let clips: [String: AnimationClip]
@@ -25,6 +27,7 @@ final class CompanionEngine: ObservableObject {
     private var lastMusicState = MusicState(isSpotifyInstalled: false, isPlaying: false, permissionStatus: .unknown)
     private var lastCalendarState = CalendarState(permissionStatus: .unknown, meetingSoon: false, nextMeetingDate: nil)
     private var manualTrigger: CompanionTrigger?
+    private var dashboardOpener: (() -> Void)?
 
     private var batteryThreshold: Int {
         get { UserDefaults.standard.object(forKey: CompanionDefaults.batteryThresholdKey) as? Int ?? CompanionDefaults.batteryThresholdDefault }
@@ -45,17 +48,19 @@ final class CompanionEngine: ObservableObject {
     }
 
     init(
-        activityService: ActivityMonitorService = ActivityMonitorService(),
-        appService: ActiveAppService = ActiveAppService(),
-        batteryService: BatteryService = BatteryService(),
-        spotifyService: SpotifyService = SpotifyService(),
-        calendarService: CalendarService = CalendarService()
+        activityService: ActivityMonitorService? = nil,
+        appService: ActiveAppService? = nil,
+        batteryService: BatteryService? = nil,
+        spotifyService: SpotifyService? = nil,
+        calendarService: CalendarService? = nil,
+        usageTracker: UsageTrackerService? = nil
     ) {
-        self.activityService = activityService
-        self.appService = appService
-        self.batteryService = batteryService
-        self.spotifyService = spotifyService
-        self.calendarService = calendarService
+        self.activityService = activityService ?? ActivityMonitorService()
+        self.appService = appService ?? ActiveAppService()
+        self.batteryService = batteryService ?? BatteryService()
+        self.spotifyService = spotifyService ?? SpotifyService()
+        self.calendarService = calendarService ?? CalendarService()
+        self.usageTracker = usageTracker ?? UsageTrackerService()
 
         let clipSet = CompanionSpriteCatalog.clips()
         self.clips = clipSet
@@ -74,6 +79,7 @@ final class CompanionEngine: ObservableObject {
             statusSubtitle: "Ambient mode",
             batteryState: BatteryState(level: 100, isCharging: true, isLowBattery: false)
         )
+        self.dashboardState = self.usageTracker.currentDashboardState()
 
         self.batteryService.lowBatteryThreshold = batteryThreshold
         self.calendarService.leadMinutes = meetingLeadMinutes
@@ -82,6 +88,7 @@ final class CompanionEngine: ObservableObject {
 
         bindServices()
         bindAnimator()
+        bindUsageTracker()
         start()
     }
 
@@ -149,18 +156,38 @@ final class CompanionEngine: ObservableObject {
         }
     }
 
+    func setDashboardRange(_ range: DashboardRange) {
+        usageTracker.setSelectedRange(range)
+        dashboardState = usageTracker.currentDashboardState()
+    }
+
+    func setDashboardOpener(_ opener: @escaping () -> Void) {
+        dashboardOpener = opener
+    }
+
+    func openDashboard() {
+        dashboardOpener?()
+    }
+
+    func resetUsageData() {
+        usageTracker.reset()
+        dashboardState = usageTracker.currentDashboardState()
+    }
+
     private func start() {
         activityService.start()
         appService.start()
         batteryService.start()
         spotifyService.start()
         calendarService.start()
+        usageTracker.start()
 
         workTimer?.invalidate()
         workTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                self.uiState.workDuration = Date().timeIntervalSince(self.sessionStartDate)
+            guard let owner = self else { return }
+            Task { @MainActor [owner] in
+                owner.uiState.workDuration = Date().timeIntervalSince(owner.sessionStartDate)
+                owner.dashboardState = owner.usageTracker.currentDashboardState()
             }
         }
         if let workTimer {
@@ -171,6 +198,7 @@ final class CompanionEngine: ObservableObject {
     private func stop() {
         workTimer?.invalidate()
         workTimer = nil
+        usageTracker.stop()
         activityService.stop()
         appService.stop()
         batteryService.stop()
@@ -214,12 +242,22 @@ final class CompanionEngine: ObservableObject {
             .store(in: &cancellables)
     }
 
+    private func bindUsageTracker() {
+        usageTracker.onUsageUpdated = { [weak self] in
+            Task { @MainActor in
+                guard let strongSelf = self else { return }
+                strongSelf.dashboardState = strongSelf.usageTracker.currentDashboardState()
+            }
+        }
+    }
+
     private func handle(_ event: SignalEvent) {
         switch event {
         case .activity(let activity):
             lastActivityState = activity
         case .frontmostApp(let app):
             lastAppContext = app
+            usageTracker.setCurrentApp(app)
         case .battery(let battery):
             lastBatteryState = battery
             uiState.batteryState = battery

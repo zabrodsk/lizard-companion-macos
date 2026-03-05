@@ -68,7 +68,7 @@ struct ActivityState {
     var intensity: Double
 }
 
-enum AppGroup: String {
+enum AppGroup: String, CaseIterable, Codable {
     case coding
     case browser
     case chat
@@ -86,6 +86,55 @@ struct AppContext {
     var bundleIdentifier: String?
     var appName: String
     var group: AppGroup
+}
+
+enum DashboardRange: String, CaseIterable {
+    case today
+    case last7Days
+}
+
+struct AppUsageEntry: Identifiable, Codable {
+    var bundleID: String
+    var appName: String
+    var category: AppGroup
+    var seconds: TimeInterval
+
+    var id: String {
+        "\(bundleID)::\(appName)::\(category.rawValue)"
+    }
+}
+
+struct CategoryUsageEntry: Identifiable, Codable {
+    var category: AppGroup
+    var seconds: TimeInterval
+
+    var id: String {
+        category.rawValue
+    }
+}
+
+struct DayUsageSnapshot: Identifiable, Codable {
+    var dateKey: String
+    var appEntries: [AppUsageEntry]
+    var categoryEntries: [CategoryUsageEntry]
+    var totalSeconds: TimeInterval
+
+    var id: String {
+        dateKey
+    }
+}
+
+struct UsageDashboardState {
+    var selectedRange: DashboardRange
+    var days: [DayUsageSnapshot]
+    var appEntries: [AppUsageEntry]
+    var categoryEntries: [CategoryUsageEntry]
+    var totalSeconds: TimeInterval
+}
+
+protocol UsageStore {
+    func load() -> [DayUsageSnapshot]
+    func save(_ snapshots: [DayUsageSnapshot])
 }
 
 struct BatteryState {

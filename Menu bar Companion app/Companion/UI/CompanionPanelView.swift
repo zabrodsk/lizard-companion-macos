@@ -86,8 +86,8 @@ struct CompanionPanelView: View {
             Divider()
 
             HStack {
-                SettingsLink {
-                    Text("Open Settings")
+                Button("Open Dashboard") {
+                    engine.openDashboard()
                 }
                 Spacer()
                 Button("Quit") { NSApp.terminate(nil) }
