@@ -122,6 +122,26 @@ Add these GitHub repository secrets to produce trusted, notarized DMG builds:
 - `APPLE_APP_SPECIFIC_PASSWORD`
 - `APPLE_TEAM_ID`
 
+### Local-Only Notarized Releases (No GitHub Secrets)
+
+If you prefer not to store secrets in GitHub, release directly from your Mac:
+
+```bash
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+NOTARYTOOL_PROFILE="your-notary-profile" \
+./scripts/release-local.sh v0.1.2
+```
+
+This local flow:
+
+- Builds Release app
+- Signs app and DMG with your Developer ID cert
+- Notarizes and staples the DMG
+- Builds ZIP + SHA256 files
+- Uploads all artifacts to the provided GitHub release tag
+
+If you omit the tag, artifacts are generated locally in `dist/` and not uploaded.
+
 Maintainers can produce a DMG locally with:
 
 ```bash
