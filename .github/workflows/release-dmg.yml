@@ -1,4 +1,4 @@
-name: Build DMG Release
+name: Build ZIP Release
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
       - "v*"
 
 jobs:
-  build-dmg:
+  build-zip:
     runs-on: macos-latest
 
     steps:
@@ -17,22 +17,9 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: Setup Signing Keychain
-        env:
-          APPLE_DEVELOPER_ID_APP_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APP_CERT_BASE64 }}
-          APPLE_DEVELOPER_ID_APP_CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APP_CERT_PASSWORD }}
-          SIGNING_KEYCHAIN_PASSWORD: ${{ secrets.SIGNING_KEYCHAIN_PASSWORD }}
-        run: ./scripts/setup-signing-keychain.sh
-
-      - name: Build DMG
-        env:
-          SIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}
-          NOTARYTOOL_PROFILE: ${{ secrets.NOTARYTOOL_PROFILE }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Build ZIP
         run: |
-          ./scripts/make-dmg.sh
+          ./scripts/release-local.sh
           ls -la dist
 
       - name: Upload Artifact
@@ -40,14 +27,14 @@ jobs:
         with:
           name: LizardCompanion-macOS
           path: |
-            dist/LizardCompanion-macOS.dmg
-            dist/LizardCompanion-macOS.dmg.sha256
+            dist/LizardCompanion-macOS.zip
+            dist/LizardCompanion-macOS.zip.sha256
 
       - name: Publish GitHub Release Asset
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/LizardCompanion-macOS.dmg
-            dist/LizardCompanion-macOS.dmg.sha256
+            dist/LizardCompanion-macOS.zip
+            dist/LizardCompanion-macOS.zip.sha256
           generate_release_notes: true

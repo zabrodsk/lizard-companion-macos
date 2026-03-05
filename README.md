@@ -85,73 +85,48 @@ open /Applications/"Menu bar Companion app.app"
 
 If macOS blocks first launch: right-click app in `/Applications` -> **Open**.
 
-## Download (DMG)
+## Download
 
-For end users, use the DMG from GitHub Releases:
+For end users, use the ZIP from GitHub Releases:
 
 - Recommended download: [LizardCompanion-macOS.zip](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.zip)
 - ZIP checksum: [LizardCompanion-macOS.zip.sha256](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.zip.sha256)
-- Direct download (latest): [LizardCompanion-macOS.dmg](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.dmg)
-- SHA256 checksum: [LizardCompanion-macOS.dmg.sha256](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.dmg.sha256)
 - Releases page: [github.com/zabrodsk/lizard-companion-macos/releases](https://github.com/zabrodsk/lizard-companion-macos/releases)
-- Drag the app into `/Applications`
+- Unzip and drag the app into `/Applications`
 
-If macOS says the DMG or app is “damaged”, run:
+If macOS blocks first launch, run:
 
 ```bash
-xattr -dr com.apple.quarantine ~/Downloads/LizardCompanion-macOS.dmg
-open ~/Downloads/LizardCompanion-macOS.dmg
 xattr -dr com.apple.quarantine /Applications/"Menu bar Companion app.app"
+open /Applications/"Menu bar Companion app.app"
 ```
 
-### Notarized Releases (Recommended)
+### Maintainer Release Flow
 
-The repo includes a notarized release workflow at:
-
-- `.github/workflows/release-dmg.yml`
-
-Add these GitHub repository secrets to produce trusted, notarized DMG builds:
-
-- `APPLE_DEVELOPER_ID_APPLICATION` (example: `Developer ID Application: Your Name (TEAMID)`)
-- `APPLE_DEVELOPER_ID_APP_CERT_BASE64` (base64-encoded `.p12`)
-- `APPLE_DEVELOPER_ID_APP_CERT_PASSWORD`
-- `SIGNING_KEYCHAIN_PASSWORD` (optional, generated if missing)
-- `NOTARYTOOL_PROFILE` (preferred)  
-  or
-- `APPLE_ID`
-- `APPLE_APP_SPECIFIC_PASSWORD`
-- `APPLE_TEAM_ID`
-
-### Local-Only Notarized Releases (No GitHub Secrets)
-
-If you prefer not to store secrets in GitHub, release directly from your Mac:
+To build and upload the current unsigned ZIP release locally:
 
 ```bash
-SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
-NOTARYTOOL_PROFILE="your-notary-profile" \
 ./scripts/release-local.sh v0.1.2
 ```
 
-This local flow:
+This flow:
 
 - Builds Release app
-- Signs app and DMG with your Developer ID cert
-- Notarizes and staples the DMG
-- Builds ZIP + SHA256 files
-- Uploads all artifacts to the provided GitHub release tag
+- Creates ZIP + SHA256 files
+- Uploads both assets to the provided GitHub release tag
 
-If you omit the tag, artifacts are generated locally in `dist/` and not uploaded.
+If you omit the tag, it just writes artifacts locally into `dist/`.
 
-Maintainers can produce a DMG locally with:
+If you only want local artifacts and no upload:
 
 ```bash
-./scripts/make-dmg.sh
+./scripts/release-local.sh
 ```
 
 This creates:
 
-- `dist/LizardCompanion-macOS.dmg`
-- `dist/LizardCompanion-macOS.dmg.sha256`
+- `dist/LizardCompanion-macOS.zip`
+- `dist/LizardCompanion-macOS.zip.sha256`
 
 ## Permissions
 
