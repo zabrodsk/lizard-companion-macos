@@ -16,3 +16,6 @@ Package.resolved
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
+
+# Local installer artifacts
+build-local/
