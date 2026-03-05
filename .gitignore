@@ -22,3 +22,6 @@ build-local/
 
 # CI local build output
 build-ci/
+
+# Local release artifacts
+dist/
