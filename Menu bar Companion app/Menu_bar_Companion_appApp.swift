@@ -1,17 +1,21 @@
-//
-//  Menu_bar_Companion_appApp.swift
-//  Menu bar Companion app
-//
-//  Created by Dusan Zabrodsky on 05.03.2026.
-//
-
+import AppKit
 import SwiftUI
 
 @main
 struct Menu_bar_Companion_appApp: App {
+    @StateObject private var engine = CompanionEngine()
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra {
+            CompanionPanelView(engine: engine)
+        } label: {
+            Image(nsImage: engine.menuBarImage)
+                .interpolation(.none)
+        }
+        .menuBarExtraStyle(.window)
+
+        Settings {
+            SettingsView(engine: engine)
         }
     }
 }

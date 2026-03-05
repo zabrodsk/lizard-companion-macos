@@ -1,21 +1,16 @@
-//
-//  ContentView.swift
-//  Menu bar Companion app
-//
-//  Created by Dusan Zabrodsky on 05.03.2026.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Tom Lizard Companion")
+                .font(.title2)
+                .bold()
+            Text("This app runs from the menu bar.")
+                .foregroundStyle(.secondary)
         }
         .padding()
+        .frame(width: 280)
     }
 }
 
