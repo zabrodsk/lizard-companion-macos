@@ -257,7 +257,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Lizard Companion uses Apple Events to read Spotify playback status when enabled.";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Lizard Companion uses Apple Events to read Spotify playback and browser website activity when enabled.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Lizard Companion uses your calendar to show meeting reminders when enabled.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -289,7 +289,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Lizard Companion uses Apple Events to read Spotify playback status when enabled.";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Lizard Companion uses Apple Events to read Spotify playback and browser website activity when enabled.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Lizard Companion uses your calendar to show meeting reminders when enabled.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

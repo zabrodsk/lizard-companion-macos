@@ -60,6 +60,7 @@ struct CompanionToggles: Equatable {
     var reactToActivity: Bool
     var reactToCalendar: Bool
     var subtleMode: Bool
+    var trackBrowserWebsites: Bool
 }
 
 struct ActivityState {
@@ -104,6 +105,17 @@ struct AppUsageEntry: Identifiable, Codable {
     }
 }
 
+struct WebsiteUsageEntry: Identifiable, Codable {
+    var browserBundleID: String
+    var browserAppName: String
+    var domain: String
+    var seconds: TimeInterval
+
+    var id: String {
+        "\(browserBundleID)::\(domain)"
+    }
+}
+
 struct CategoryUsageEntry: Identifiable, Codable {
     var category: AppGroup
     var seconds: TimeInterval
@@ -117,6 +129,7 @@ struct DayUsageSnapshot: Identifiable, Codable {
     var dateKey: String
     var appEntries: [AppUsageEntry]
     var categoryEntries: [CategoryUsageEntry]
+    var websiteEntries: [WebsiteUsageEntry]
     var totalSeconds: TimeInterval
 
     var id: String {
@@ -129,6 +142,7 @@ struct UsageDashboardState {
     var days: [DayUsageSnapshot]
     var appEntries: [AppUsageEntry]
     var categoryEntries: [CategoryUsageEntry]
+    var websiteEntries: [WebsiteUsageEntry]
     var totalSeconds: TimeInterval
 }
 
@@ -155,9 +169,18 @@ struct CalendarState {
     var nextMeetingDate: Date?
 }
 
+struct BrowserSiteState {
+    var bundleID: String?
+    var appName: String
+    var domain: String?
+    var permissionStatus: PermissionStatus
+    var isSupported: Bool
+}
+
 struct CompanionPermissionStatuses {
     var spotify: PermissionStatus
     var calendar: PermissionStatus
+    var browserWebsites: PermissionStatus
 }
 
 struct CompanionUIState {
@@ -184,6 +207,7 @@ enum SignalEvent {
     case battery(BatteryState)
     case spotify(MusicState)
     case calendar(CalendarState)
+    case browserSite(BrowserSiteState)
 }
 
 protocol SignalService {
@@ -200,6 +224,7 @@ enum CompanionDefaults {
     static let reactToActivityKey = "companion.reactToActivity"
     static let reactToCalendarKey = "companion.reactToCalendar"
     static let subtleModeKey = "companion.subtleMode"
+    static let trackBrowserWebsitesKey = "companion.trackBrowserWebsites"
 
     static let batteryThresholdDefault = 20
     static let meetingLeadMinutesDefault = 5
@@ -209,6 +234,7 @@ enum CompanionDefaults {
         reactToApps: true,
         reactToActivity: true,
         reactToCalendar: false,
-        subtleMode: true
+        subtleMode: true,
+        trackBrowserWebsites: false
     )
 }

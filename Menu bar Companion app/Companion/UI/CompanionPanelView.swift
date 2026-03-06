@@ -62,6 +62,11 @@ struct CompanionPanelView: View {
                         set: { engine.setReactToCalendar($0) }
                     ))
 
+                    Toggle("Track websites in browsers", isOn: Binding(
+                        get: { engine.uiState.toggles.trackBrowserWebsites },
+                        set: { engine.setTrackBrowserWebsites($0) }
+                    ))
+
                     Toggle("Subtle transitions", isOn: Binding(
                         get: { engine.uiState.toggles.subtleMode },
                         set: { engine.setSubtleMode($0) }
@@ -79,6 +84,13 @@ struct CompanionPanelView: View {
                         status: engine.uiState.permissionStatuses.calendar,
                         actionTitle: "Enable",
                         onAction: { engine.requestCalendarPermission() }
+                    )
+
+                    PermissionRow(
+                        title: "Browser Website Access",
+                        status: engine.uiState.permissionStatuses.browserWebsites,
+                        actionTitle: "Enable",
+                        onAction: { engine.requestBrowserWebsitePermission() }
                     )
                 }
             }

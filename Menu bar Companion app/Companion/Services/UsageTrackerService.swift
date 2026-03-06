@@ -7,15 +7,23 @@ final class UsageTrackerService {
         let category: AppGroup
     }
 
+    private struct WebsiteKey: Hashable {
+        let browserBundleID: String
+        let browserAppName: String
+        let domain: String
+    }
+
     private struct DayAccumulator {
         var appTotals: [UsageKey: TimeInterval] = [:]
         var categoryTotals: [AppGroup: TimeInterval] = [:]
+        var websiteTotals: [WebsiteKey: TimeInterval] = [:]
         var total: TimeInterval = 0
     }
 
     private let store: UsageStore
     private var timer: Timer?
     private var currentAppContext: AppContext?
+    private var currentDomain: String?
     private var currentSegmentStart = Date()
     private var accumulators: [String: DayAccumulator] = [:]
     private var selectedRange: DashboardRange = .today
@@ -56,6 +64,20 @@ final class UsageTrackerService {
 
         flushCurrentSegment(until: date)
         currentAppContext = context
+        if context.group != .browser {
+            currentDomain = nil
+        }
+        currentSegmentStart = date
+    }
+
+    func setCurrentDomain(_ domain: String?, at date: Date = Date()) {
+        let normalized = normalizeDomain(domain)
+        if currentDomain == normalized {
+            return
+        }
+
+        flushCurrentSegment(until: date)
+        currentDomain = normalized
         currentSegmentStart = date
     }
 
@@ -74,6 +96,7 @@ final class UsageTrackerService {
 
         var appAggregation: [String: AppUsageEntry] = [:]
         var categoryAggregation: [AppGroup: TimeInterval] = [:]
+        var websiteAggregation: [String: WebsiteUsageEntry] = [:]
         var total: TimeInterval = 0
 
         for day in daySnapshots {
@@ -92,6 +115,17 @@ final class UsageTrackerService {
             for category in day.categoryEntries {
                 categoryAggregation[category.category, default: 0] += category.seconds
             }
+            for website in day.websiteEntries {
+                let key = "\(website.browserBundleID)::\(website.domain)"
+                var existing = websiteAggregation[key] ?? WebsiteUsageEntry(
+                    browserBundleID: website.browserBundleID,
+                    browserAppName: website.browserAppName,
+                    domain: website.domain,
+                    seconds: 0
+                )
+                existing.seconds += website.seconds
+                websiteAggregation[key] = existing
+            }
         }
 
         return UsageDashboardState(
@@ -101,6 +135,7 @@ final class UsageTrackerService {
             categoryEntries: categoryAggregation
                 .map { CategoryUsageEntry(category: $0.key, seconds: $0.value) }
                 .sorted { $0.seconds > $1.seconds },
+            websiteEntries: websiteAggregation.values.sorted { $0.seconds > $1.seconds },
             totalSeconds: total
         )
     }
@@ -108,6 +143,7 @@ final class UsageTrackerService {
     func reset() {
         accumulators = [:]
         currentAppContext = nil
+        currentDomain = nil
         currentSegmentStart = Date()
         persist()
         onUsageUpdated?()
@@ -152,6 +188,10 @@ final class UsageTrackerService {
         var day = accumulators[key] ?? DayAccumulator()
         day.appTotals[usageKey, default: 0] += delta
         day.categoryTotals[context.group, default: 0] += delta
+        if context.group == .browser, let domain = normalizeDomain(currentDomain) {
+            let websiteKey = WebsiteKey(browserBundleID: bundleID, browserAppName: context.appName, domain: domain)
+            day.websiteTotals[websiteKey, default: 0] += delta
+        }
         day.total += delta
         accumulators[key] = day
     }
@@ -166,10 +206,22 @@ final class UsageTrackerService {
             .map { CategoryUsageEntry(category: $0.key, seconds: $0.value) }
             .sorted { $0.seconds > $1.seconds }
 
+        let websiteEntries = day.websiteTotals
+            .map {
+                WebsiteUsageEntry(
+                    browserBundleID: $0.key.browserBundleID,
+                    browserAppName: $0.key.browserAppName,
+                    domain: $0.key.domain,
+                    seconds: $0.value
+                )
+            }
+            .sorted { $0.seconds > $1.seconds }
+
         return DayUsageSnapshot(
             dateKey: key,
             appEntries: appEntries,
             categoryEntries: categoryEntries,
+            websiteEntries: websiteEntries,
             totalSeconds: day.total
         )
     }
@@ -223,6 +275,14 @@ final class UsageTrackerService {
             for category in snapshot.categoryEntries {
                 day.categoryTotals[category.category] = category.seconds
             }
+            for website in snapshot.websiteEntries {
+                let key = WebsiteKey(
+                    browserBundleID: website.browserBundleID,
+                    browserAppName: website.browserAppName,
+                    domain: website.domain
+                )
+                day.websiteTotals[key] = website.seconds
+            }
             day.total = snapshot.totalSeconds
             rebuilt[snapshot.dateKey] = day
         }
@@ -242,6 +302,15 @@ final class UsageTrackerService {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+
+    private func normalizeDomain(_ domain: String?) -> String? {
+        guard let domain else { return nil }
+        let trimmed = domain
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard trimmed.isEmpty == false else { return nil }
+        return trimmed
+    }
 }
 
 struct UserDefaultsUsageStore: UsageStore {

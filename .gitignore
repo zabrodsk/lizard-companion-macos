@@ -22,6 +22,7 @@ build-local/
 
 # CI local build output
 build-ci/
+build-plan-check/
 
 # Local release artifacts
 dist/

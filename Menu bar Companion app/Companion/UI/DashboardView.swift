@@ -3,6 +3,7 @@ import Charts
 
 struct DashboardView: View {
     @ObservedObject var engine: CompanionEngine
+    @State private var expandedBrowsers = Set<String>()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -43,7 +44,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Companion Dashboard")
                     .font(.title2.weight(.semibold))
-                Text("Tracked frontmost app time")
+                Text("Tracked frontmost app time and browser domains")
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -99,24 +100,64 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(engine.dashboardState.appEntries) { entry in
-                        HStack(spacing: 10) {
-                            Image(nsImage: appIcon(for: entry.bundleID))
-                                .resizable()
-                                .frame(width: 18, height: 18)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
-                            Text(entry.appName)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text(categoryTitle(entry.category))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(formatDuration(entry.seconds))
-                                .font(.system(.body, design: .monospaced))
+                        if browserWebsites(for: entry).isEmpty == false {
+                            DisclosureGroup(
+                                isExpanded: Binding(
+                                    get: { expandedBrowsers.contains(entry.id) },
+                                    set: { isExpanded in
+                                        if isExpanded {
+                                            expandedBrowsers.insert(entry.id)
+                                        } else {
+                                            expandedBrowsers.remove(entry.id)
+                                        }
+                                    }
+                                )
+                            ) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Domains only, tracked while browser is frontmost.")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+
+                                    ForEach(browserWebsites(for: entry)) { website in
+                                        HStack(spacing: 10) {
+                                            Text(website.domain)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                            Text(websiteShare(for: website, in: entry))
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                            Text(formatDuration(website.seconds))
+                                                .font(.system(.caption, design: .monospaced))
+                                        }
+                                    }
+                                }
+                                .padding(.top, 6)
+                            } label: {
+                                appRow(for: entry)
+                            }
+                        } else {
+                            appRow(for: entry)
                         }
                         Divider()
                     }
                 }
             }
             .frame(maxHeight: 220)
+        }
+    }
+
+    private func appRow(for entry: AppUsageEntry) -> some View {
+        HStack(spacing: 10) {
+            Image(nsImage: appIcon(for: entry.bundleID))
+                .resizable()
+                .frame(width: 18, height: 18)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+            Text(entry.appName)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(categoryTitle(entry.category))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(formatDuration(entry.seconds))
+                .font(.system(.body, design: .monospaced))
         }
     }
 
@@ -131,6 +172,18 @@ struct DashboardView: View {
 
     private func categoryTitle(_ entry: CategoryUsageEntry) -> String {
         categoryTitle(entry.category)
+    }
+
+    private func browserWebsites(for entry: AppUsageEntry) -> [WebsiteUsageEntry] {
+        engine.dashboardState.websiteEntries
+            .filter { $0.browserBundleID == entry.bundleID }
+            .sorted { $0.seconds > $1.seconds }
+    }
+
+    private func websiteShare(for website: WebsiteUsageEntry, in entry: AppUsageEntry) -> String {
+        guard entry.seconds > 0 else { return "0%" }
+        let percentage = Int(round((website.seconds / entry.seconds) * 100))
+        return "\(percentage)%"
     }
 
     private func categoryTitle(_ category: AppGroup) -> String {

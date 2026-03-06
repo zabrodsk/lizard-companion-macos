@@ -18,6 +18,11 @@ struct SettingsView: View {
                     .onChange(of: meetingLeadMinutes) { _, value in
                         engine.setMeetingLeadMinutes(value)
                     }
+
+                Toggle("Track websites in Safari and Comet", isOn: Binding(
+                    get: { engine.uiState.toggles.trackBrowserWebsites },
+                    set: { engine.setTrackBrowserWebsites($0) }
+                ))
             }
 
             Section("Permissions") {
@@ -32,6 +37,12 @@ struct SettingsView: View {
                     Spacer()
                     Text(engine.uiState.permissionStatuses.calendar.rawValue.capitalized)
                     Button("Enable") { engine.requestCalendarPermission() }
+                }
+                HStack {
+                    Text("Browser websites")
+                    Spacer()
+                    Text(engine.uiState.permissionStatuses.browserWebsites.rawValue.capitalized)
+                    Button("Enable") { engine.requestBrowserWebsitePermission() }
                 }
             }
 

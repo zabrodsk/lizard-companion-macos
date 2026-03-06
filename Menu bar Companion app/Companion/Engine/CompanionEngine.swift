@@ -13,6 +13,7 @@ final class CompanionEngine: ObservableObject {
     private let batteryService: BatteryService
     private let spotifyService: SpotifyService
     private let calendarService: CalendarService
+    private let browserWebsiteService: BrowserWebsiteService
     private let usageTracker: UsageTrackerService
     private let animator: SpriteAnimator
 
@@ -26,6 +27,7 @@ final class CompanionEngine: ObservableObject {
     private var lastBatteryState = BatteryState(level: 100, isCharging: true, isLowBattery: false)
     private var lastMusicState = MusicState(isSpotifyInstalled: false, isPlaying: false, permissionStatus: .unknown)
     private var lastCalendarState = CalendarState(permissionStatus: .unknown, meetingSoon: false, nextMeetingDate: nil)
+    private var lastBrowserSiteState = BrowserSiteState(bundleID: nil, appName: "Unknown", domain: nil, permissionStatus: .unknown, isSupported: false)
     private var manualTrigger: CompanionTrigger?
     private var dashboardOpener: (() -> Void)?
 
@@ -53,6 +55,7 @@ final class CompanionEngine: ObservableObject {
         batteryService: BatteryService? = nil,
         spotifyService: SpotifyService? = nil,
         calendarService: CalendarService? = nil,
+        browserWebsiteService: BrowserWebsiteService? = nil,
         usageTracker: UsageTrackerService? = nil
     ) {
         self.activityService = activityService ?? ActivityMonitorService()
@@ -60,6 +63,7 @@ final class CompanionEngine: ObservableObject {
         self.batteryService = batteryService ?? BatteryService()
         self.spotifyService = spotifyService ?? SpotifyService()
         self.calendarService = calendarService ?? CalendarService()
+        self.browserWebsiteService = browserWebsiteService ?? BrowserWebsiteService()
         self.usageTracker = usageTracker ?? UsageTrackerService()
 
         let clipSet = CompanionSpriteCatalog.clips()
@@ -69,7 +73,7 @@ final class CompanionEngine: ObservableObject {
         self.menuBarImage = initialClip.frames.first ?? CompanionSpriteCatalog.fallbackIcon()
 
         let toggles = Self.loadToggles()
-        let permissions = CompanionPermissionStatuses(spotify: .unknown, calendar: .unknown)
+        let permissions = CompanionPermissionStatuses(spotify: .unknown, calendar: .unknown, browserWebsites: .unknown)
         self.uiState = CompanionUIState(
             mood: .productive,
             activeClipID: initialClip.id,
@@ -85,6 +89,7 @@ final class CompanionEngine: ObservableObject {
         self.calendarService.leadMinutes = meetingLeadMinutes
         self.spotifyService.enabled = toggles.reactToMusic
         self.calendarService.enabled = toggles.reactToCalendar
+        self.browserWebsiteService.enabled = toggles.trackBrowserWebsites
 
         bindServices()
         bindAnimator()
@@ -129,6 +134,18 @@ final class CompanionEngine: ObservableObject {
         persistToggles()
     }
 
+    func setTrackBrowserWebsites(_ enabled: Bool) {
+        uiState.toggles.trackBrowserWebsites = enabled
+        browserWebsiteService.enabled = enabled
+        persistToggles()
+        if enabled, uiState.permissionStatuses.browserWebsites == .unknown {
+            browserWebsiteService.requestPermission()
+        } else if enabled == false {
+            usageTracker.setCurrentDomain(nil)
+        }
+        evaluateState()
+    }
+
     func setBatteryThreshold(_ value: Int) {
         batteryThreshold = value
     }
@@ -143,6 +160,10 @@ final class CompanionEngine: ObservableObject {
 
     func requestCalendarPermission() {
         calendarService.requestPermission()
+    }
+
+    func requestBrowserWebsitePermission() {
+        browserWebsiteService.requestPermission()
     }
 
     func handleManualTrigger(_ trigger: CompanionTrigger) {
@@ -180,6 +201,7 @@ final class CompanionEngine: ObservableObject {
         batteryService.start()
         spotifyService.start()
         calendarService.start()
+        browserWebsiteService.start()
         usageTracker.start()
 
         workTimer?.invalidate()
@@ -204,6 +226,7 @@ final class CompanionEngine: ObservableObject {
         batteryService.stop()
         spotifyService.stop()
         calendarService.stop()
+        browserWebsiteService.stop()
     }
 
     private func bindServices() {
@@ -228,6 +251,11 @@ final class CompanionEngine: ObservableObject {
             .store(in: &cancellables)
 
         calendarService.publisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] event in self?.handle(event) }
+            .store(in: &cancellables)
+
+        browserWebsiteService.publisher
             .receive(on: RunLoop.main)
             .sink { [weak self] event in self?.handle(event) }
             .store(in: &cancellables)
@@ -257,6 +285,7 @@ final class CompanionEngine: ObservableObject {
             lastActivityState = activity
         case .frontmostApp(let app):
             lastAppContext = app
+            browserWebsiteService.setFrontmostApp(app)
             usageTracker.setCurrentApp(app)
         case .battery(let battery):
             lastBatteryState = battery
@@ -267,6 +296,11 @@ final class CompanionEngine: ObservableObject {
         case .calendar(let calendar):
             lastCalendarState = calendar
             uiState.permissionStatuses.calendar = calendar.permissionStatus
+        case .browserSite(let site):
+            lastBrowserSiteState = site
+            uiState.permissionStatuses.browserWebsites = site.permissionStatus
+            let trackedDomain = uiState.toggles.trackBrowserWebsites && site.isSupported ? site.domain : nil
+            usageTracker.setCurrentDomain(trackedDomain)
         }
 
         evaluateState()
@@ -524,6 +558,7 @@ final class CompanionEngine: ObservableObject {
         defaults.set(uiState.toggles.reactToActivity, forKey: CompanionDefaults.reactToActivityKey)
         defaults.set(uiState.toggles.reactToCalendar, forKey: CompanionDefaults.reactToCalendarKey)
         defaults.set(uiState.toggles.subtleMode, forKey: CompanionDefaults.subtleModeKey)
+        defaults.set(uiState.toggles.trackBrowserWebsites, forKey: CompanionDefaults.trackBrowserWebsitesKey)
     }
 
     private static func loadToggles() -> CompanionToggles {
@@ -542,7 +577,8 @@ final class CompanionEngine: ObservableObject {
             reactToApps: bool(for: CompanionDefaults.reactToAppsKey, fallback: preset.reactToApps),
             reactToActivity: bool(for: CompanionDefaults.reactToActivityKey, fallback: preset.reactToActivity),
             reactToCalendar: bool(for: CompanionDefaults.reactToCalendarKey, fallback: preset.reactToCalendar),
-            subtleMode: bool(for: CompanionDefaults.subtleModeKey, fallback: preset.subtleMode)
+            subtleMode: bool(for: CompanionDefaults.subtleModeKey, fallback: preset.subtleMode),
+            trackBrowserWebsites: bool(for: CompanionDefaults.trackBrowserWebsitesKey, fallback: preset.trackBrowserWebsites)
         )
     }
 }

@@ -29,6 +29,7 @@ An expressive menu bar pet that reacts to what you're doing on your Mac.
 - Animated companion in your menu bar (not a static icon)
 - Context-aware states for real workflows
 - Dashboard window with app/category time tracking (today and last 7 days)
+- Safari and Comet website tracking by domain inside the dashboard
 - Spotify reaction mode with just-in-time permission request
 - Calendar reminder reactions
 - Battery-aware animation throttling for better efficiency
@@ -103,12 +104,23 @@ For end users, use the ZIP from GitHub Releases:
 - Releases page: [github.com/zabrodsk/lizard-companion-macos/releases](https://github.com/zabrodsk/lizard-companion-macos/releases)
 - Unzip and drag the app into `/Applications`
 
-If macOS blocks first launch, run:
+If the latest release is notarized, macOS should open it normally after unzip. If an older release is blocked, run:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/"Menu bar Companion app.app"
 open /Applications/"Menu bar Companion app.app"
 ```
+
+## Dashboard Tracking
+
+The dashboard tracks frontmost app time and, when enabled, browser domain time for supported browsers:
+
+- Browser support: Safari and Comet
+- Website tracking is off by default and must be enabled in settings
+- Domain tracking only runs while the browser is frontmost
+- The dashboard stores domains, not full page URLs
+
+Website tracking uses Apple Events and may prompt for permission the first time you enable it.
 
 ### Maintainer Release Flow
 
@@ -150,11 +162,14 @@ This creates:
 - `dist/LizardCompanion-macOS.zip`
 - `dist/LizardCompanion-macOS.zip.sha256`
 
+For the full release process, GitHub Actions secrets, and verification steps, see [docs/release.md](docs/release.md).
+
 ## Permissions
 
 The app requests permissions only when related features are enabled:
 
 - Apple Events: Spotify playback state
+- Apple Events: Safari and Comet current website domain
 - Calendar: upcoming meeting reminders
 
 ## Battery Impact

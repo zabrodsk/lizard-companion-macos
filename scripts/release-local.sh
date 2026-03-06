@@ -12,8 +12,9 @@ Usage:
 
 What it does:
   1) Builds Release app
-  2) Creates ZIP + checksum
-  3) Optionally uploads assets to GitHub release tag if provided
+  2) Optionally notarizes the app (when credentials are set)
+  3) Creates ZIP + checksum
+  4) Optionally uploads assets to GitHub release tag if provided
 USAGE
 }
 
@@ -30,6 +31,18 @@ fi
 if [[ ! -d "$APP_PATH" ]]; then
   echo "App not found at: $APP_PATH" >&2
   exit 1
+fi
+
+if [[ -n "${NOTARYTOOL_PROFILE:-}" || (-n "${APPLE_ID:-}" && -n "${APPLE_APP_SPECIFIC_PASSWORD:-}" && -n "${APPLE_TEAM_ID:-}") ]]; then
+  if [[ -z "${SIGN_IDENTITY:-}" ]]; then
+    echo "NOTARIZATION REQUESTED but SIGN_IDENTITY is empty." >&2
+    echo "Set SIGN_IDENTITY to a valid 'Developer ID Application: ...' identity." >&2
+    exit 1
+  fi
+  echo "==> Notarizing app bundle..."
+  "$ROOT_DIR/scripts/notarize-app.sh" "$APP_PATH"
+else
+  echo "==> Notarization credentials not set; producing a non-notarized ZIP."
 fi
 
 echo "==> Creating ZIP artifact..."
