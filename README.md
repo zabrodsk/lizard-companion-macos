@@ -99,6 +99,7 @@ If macOS blocks first launch: right-click app in `/Applications` -> **Open**.
 
 For end users, use the ZIP from GitHub Releases:
 
+- Current release asset name: `LizardCompanion-macOS.zip`
 - Recommended download: [LizardCompanion-macOS.zip](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.zip)
 - ZIP checksum: [LizardCompanion-macOS.zip.sha256](https://github.com/zabrodsk/lizard-companion-macos/releases/latest/download/LizardCompanion-macOS.zip.sha256)
 - Releases page: [github.com/zabrodsk/lizard-companion-macos/releases](https://github.com/zabrodsk/lizard-companion-macos/releases)
@@ -124,10 +125,10 @@ Website tracking uses Apple Events and may prompt for permission the first time 
 
 ### Maintainer Release Flow
 
-To build and upload the current ZIP release locally:
+To build and upload a ZIP to an existing GitHub release tag:
 
 ```bash
-./scripts/release-local.sh v0.1.2
+./scripts/release-local.sh v0.1.3
 ```
 
 This flow:
@@ -161,6 +162,15 @@ This creates:
 
 - `dist/LizardCompanion-macOS.zip`
 - `dist/LizardCompanion-macOS.zip.sha256`
+
+To create a new GitHub ZIP release with Actions:
+
+```bash
+git tag v0.1.3
+git push origin v0.1.3
+```
+
+That tag triggers `.github/workflows/release-zip.yml`, which uploads `LizardCompanion-macOS.zip` and `LizardCompanion-macOS.zip.sha256` to the matching GitHub release.
 
 For the full release process, GitHub Actions secrets, and verification steps, see [docs/release.md](docs/release.md).
 
